@@ -826,10 +826,10 @@ if (!defined("JSON_UNESCAPED_SLASHES")) {
       #-- strings need some care
       elseif (is_string($var)) {
 
-         if (!utf8_decode($var)) {
-            trigger_error("up_json_encode: invalid UTF-8 encoding in string, cannot proceed.", E_USER_WARNING);
+         /*if (!utf8_decode($var)) {
+            trigger_error("up_json_encode: invalid UTF-8 encoding in string \"$var\", cannot proceed.", E_USER_WARNING);
             $var = NULL;
-         }
+         }*/
          $rewrite = array(
              "\\" => "\\\\",
              "\"" => "\\\"",
