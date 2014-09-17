@@ -17,6 +17,7 @@
  * @param  string
  * @return integer
  */
+if ( !function_exists('filter_id')) {
 function filter_id($name) {
    $map = array(
       "int" => FILTER_VALIDATE_INT,
@@ -45,6 +46,7 @@ function filter_id($name) {
       trigger_error(E_USER_ERROR, "no filter by name '".htmlentities($name)."'");
    }
 }
+}
 
 
 
@@ -53,6 +55,7 @@ function filter_id($name) {
  *
  * @return array
  */
+if ( !function_exists('filter_list')) {
 function filter_list() {
    return array(
       "int",
@@ -75,7 +78,7 @@ function filter_list() {
       "callback",
    );
 }
-
+}
 
 
 /**
@@ -144,9 +147,10 @@ define("FILTER_FLAG_NO_PRIV_RANGE", 	0x8000000);
  * @param mixed    mapping varname => filter_id or filter/flags hash
  * @global $_REQUEST,$_GET,$_POST,$_SERVER,$_ENV,$_SESSION,$_COOKIE
  */
+if ( !function_exists('filter_input_array')) {
 function filter_input_array($GPCSESR, $def=array()) {
    $r = array();
-   
+
    if ($GPCSESR & INPUT_REQUEST) {
       $r = array_merge($r, filter_var_array($_REQUEST, $def));
    }
@@ -165,8 +169,9 @@ function filter_input_array($GPCSESR, $def=array()) {
    if ($GPCSESR & INPUT_ENV) {
       $r = array_merge($r, filter_var_array($_ENV, $def));
    }
-   
+
    return($r);
+}
 }
 
 
@@ -180,10 +185,11 @@ function filter_input_array($GPCSESR, $def=array()) {
  * @param bitmask
  * @return string
  */
+if (!function_exists('filter_input')) {
 function filter_input($_INPUT, $name, $filter=0, $flags=0) {
    return filter_input_array($_INPUT, array($name => array("filter"=>$filter, "flags"=>$flags)));
 }
-
+}
 
 
 
@@ -194,12 +200,13 @@ function filter_input($_INPUT, $name, $filter=0, $flags=0) {
  * @param array   variable list
  * @return array  filtered vars
  */
+if ( !function_exists('filter_var_array')) {
 function filter_var_array($hash, $def=array()) {
    $r = array();
 
    #-- variable names from list
    foreach($def as $varname=>$filt) {
-   
+
       #-- do we have it?
       if (!isset($hash[$varname])) {
       }
@@ -212,8 +219,9 @@ function filter_var_array($hash, $def=array()) {
          $r[$varname] = filter_var($hash[$name], $filt);
       }
    }
-   
+
    return($r);
+}
 }
 
 
@@ -221,6 +229,7 @@ function filter_var_array($hash, $def=array()) {
  * isset() test in _GET,_POST,... arrays
  *
  */
+if (!function_exists('filter_has_var')) {
 function filter_has_var($_INPUT, $varname) {
    return false
    or ($_INPUT & INPUT_REQUEST) and isset($_REQUEST[$varname])
@@ -230,6 +239,7 @@ function filter_has_var($_INPUT, $varname) {
    or ($_INPUT & INPUT_GET) and isset($_GET[$varname])
    or ($_INPUT & INPUT_ENV) and isset($_ENV[$varname]);
 }
+}
 
 
 
@@ -238,6 +248,7 @@ function filter_has_var($_INPUT, $varname) {
  *
  * @param mixed $var
  */
+if (!function_exists('filter_var')) {
 function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
 
    #-- recursively call ourselves for array input
@@ -245,7 +256,7 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
      array_walk_recursive($var, "filter_var__walk", array($filter, $options));
      return $var;
    }
-   
+
    #-- extract options
    $flags = 0x0000000;
    $regexp = "//";
@@ -258,7 +269,7 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
    elseif (is_int($options)) {
       $flags = $options;
    }
-   
+
    #-- clean up flags
    $FAILURE = $flags & FILTER_NULL_ON_FAILURE ? NULL : false;
    $flags = $flags & ~FILTER_NULL_ON_FAILURE;
@@ -266,17 +277,17 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
    $flags = $flags & ~FILTER_REQUIRE_ARRAY;
    $flags = $flags & ~FILTER_FORCE_ARRAY;
 
-   
+
    #-- regular expressions for simple filters
    $rx = array(
        "int" => "/^[-+]?(\d{1,9})$/",
        "oct" => "/^0([0-7]{1,12})$/",
-       "hex" => => "/^(0x)?([0-0a-fA-F]{1,12})$/",
-       "bool_true" => => "/^(true|yes|on|1)$/",
-       "bool_false" => => "/^(false|no|off|0|)$/",
-       "float" => => "/^([+-]?\d+(\.\d+)([eE]\d+))$/",
-       "char_low" => => "[\000-\037]",
-       "char_high" => => "[\177-\377]",
+       "hex" => "/^(0x)?([0-0a-fA-F]{1,12})$/",
+       "bool_true" => "/^(true|yes|on|1)$/",
+       "bool_false" => "/^(false|no|off|0|)$/",
+       "float" => "/^([+-]?\d+(\.\d+)([eE]\d+))$/",
+       "char_low" => "[\000-\037]",
+       "char_high" => "[\177-\377]",
    );
 
 
@@ -323,7 +334,7 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
       else {
          return $FAILURE;
       }
-      
+
       #-- range
       if (($var < $min_range) or ($var > $max_range)) {
          return $FAILURE;
@@ -333,13 +344,13 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
       }
    }
 
-   
+
    #-- boolean
    elseif ($filter == FILTER_VALIDATE_BOOLEAN) {
-      if (preg_match($rx["bool_true"], $var) {
+     if (preg_match($rx["bool_true"], $var)) {
          return TRUE;
       }
-      elseif (preg_match($rx["bool_false"], $var) {
+     elseif (preg_match($rx["bool_false"], $var)) {
          return FALSE;
       }
       else {
@@ -414,7 +425,7 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
 
    #-- urlencoded
    elseif  ($filter == FILTER_SANITIZE_ENCODED) {
-   
+
       $var = urlencode($var);
 
       #-- encode ASCII <32
@@ -425,7 +436,7 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
       if ($flags & FILTER_FLAG_ENCODE_HIGH) {
          $var = preg_replace("/($rx[char_high]+)/e", "rawurlencode('$1')", $var);
       }
-       
+
       return $var;
    }
 
@@ -450,13 +461,13 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
 
 
    #-- binary
-   elseif ($filter == FILTER_UNSAFE_RAW)) {
-   
+   elseif ($filter == FILTER_UNSAFE_RAW) {
+
       #-- "raw": encode AMPERSAND
       if ($flags & FILTER_FLAG_ENCODE_AMP) {
          $var = str_replace("&", "%", $var);           // ???????????????
       }
-   
+
       #-- rm ASCII <32
       if ($flags & FILTER_FLAG_STRIP_LOW) {
          $var = preg_replace("/$rx[char_low]+/", "", $var);
@@ -517,13 +528,14 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
       return call_user_func($callback, $var);
    }
 
-         
-   #-- filter unknown         
+
+   #-- filter unknown
    else {
       trigger_error(E_USER_ERROR, "Uh, oh. Unknown filter id #".$filter);
       return $FAILURE;
    }
-   
+
+}
 }
 
 
@@ -531,15 +543,17 @@ function filter_var($var, $filter=FILTER_SANITIZE_STRING, $options=array()) {
  * Callback wrapper; needed for array_walk_recursive().
  *
  */
+if (!function_exists('filter_var__walk')) {
 function filter_var__walk(&$var, $key, $filter, $options) {
    $var = filter_var($var, $filter, $options);
+}
 }
 
 
 
 /**
  * @tests
- 
+
 123 === filter_var("123", FILTER_VALIDATE_INT)
 FALSE === filter_var("--123", FILTER_VALIDATE_INT)
 123 == filter_var("+123", FILTER_VALIDATE_INT)
@@ -547,7 +561,7 @@ FALSE === filter_var("--123", FILTER_VALIDATE_INT)
 FALSE === filter_var("-0xFFFF", FILTER_VALIDATE_INT, FILTER_FLAG_ALLOW_HEX)
 "12&#38;3" === filter_var("12&3", FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_AMP)
 "1&#9;2'&5" === ("1\t2'3&<4>5", FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES|FILTER_FLAG_ENCODE_LOW)
- 
+
  */
 
 ?>
